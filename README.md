@@ -1,75 +1,43 @@
-# React + TypeScript + Vite
+# StepCV | Professional AI-Integrated Resume Engineering Platform
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+StepCV, modern işe alım süreçlerindeki standartları karşılamak üzere geliştirilmiş, yüksek performanslı ve modüler bir özgeçmiş oluşturma motorudur. Uygulama, kullanıcı verilerini anlık işleme kapasitesi ve gelişmiş yapay zeka analizi ile rakiplerinden ayrışmaktadır.
 
-Currently, two official plugins are available:
+## Teknik Mimari ve AI Entegrasyonu
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Projenin kalbinde yer alan Google Gemini 1.5 Flash entegrasyonu, basit bir metin düzenleyicinin ötesinde bir "Mühendislik Danışmanı" gibi çalışır. 
 
-## React Compiler
+- **Gelişmiş Semantik Analiz:** Kullanıcının girdiği ham veriler, @google/genai SDK'sı üzerinden Gemini modeline iletilerek sektör standartlarına uygun profesyonel anahtar kelimelerle yeniden yapılandırılır.
+- **Gerçek Zamanlı Veri Analiti:** CV Skoru algoritması, veri bütünlüğünü ve bölüm doluluk oranlarını asenkron olarak takip ederek kullanıcıya anlık kalite geri bildirimi sağlar.
+- **Bağlamsal Tavsiye Motoru:** AI katmanı, sadece metin düzeltmez; özgeçmişin eksik kalan teknik derinliğini analiz ederek kullanıcıya stratejik iyileştirme önerileri sunar.
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+## Temel Fonksiyonlar
 
-Note: This will impact Vite dev & build performances.
+- **Dinamik Önizleme Sistemi:** Masaüstü görünümlerde form ve A4 çıktı alanı eşzamanlı (synchronized) çalışarak kullanıcının nihai dokümanı anlık takip etmesini sağlar.
+- **Veri Sıralama Mimarisi:** @hello-pangea/dnd kütüphanesi kullanılarak karmaşık dizi operasyonları kullanıcı dostu sürükle-bırak arayüzüne indirgenmiştir.
+- **Tip Güvenli Altyapı:** Tüm uygulama TypeScript ile uçtan uca tiplendirilmiştir (Strict Type-Safety). VerbatimModuleSyntax kuralı ile derleme optimizasyonu sağlanmıştır.
+- **Globalizasyon:** Uygulama çekirdeği 10 farklı dili (TR, EN, DE, FR, ES, IT, AR, RU, ZH, JP) ve bu dillere ait yerelleştirilmiş CV standartlarını destekler.
+- **Client-Side PDF Rendering:** Doküman oluşturma işlemi tamamen istemci tarafında (browser) gerçekleşir; sunucu yükünü minimize eder ve veri gizliliğini maksimize eder.
 
-## Expanding the ESLint configuration
+## Teknoloji Stack
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- **Core:** React 18 & Vite
+- **Language:** TypeScript (Type-Safe Architecture)
+- **Styling:** Tailwind CSS (Custom Layouts)
+- **Icons:** Lucide React
+- **Engine:** Google Generative AI (Gemini API)
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Kurulum Prosedürü
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+1. Repoyu yerel ortamınıza klonlayın:
+   `git clone https://github.com/abuzerduzen/cv-builder-pro.git`
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+2. Bağımlılıkları yükleyin:
+   `npm install`
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+3. `.env` dosyası içerisine geçerli bir `VITE_GEMINI_API_KEY` tanımlayın.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+4. Geliştirme sunucusunu başlatın:
+   `npm run dev`
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+---
+Developed by Abuzer Düzen | 2026
