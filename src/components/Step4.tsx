@@ -1,479 +1,459 @@
 import React from 'react';
+import { Mail, Phone, MapPin, Globe } from 'lucide-react';
 import type { ResumeData } from '../types';
-import { Mail, Phone, MapPin } from 'lucide-react';
 
 interface Step4Props {
   data: ResumeData;
 }
 
-const translations = {
-  TR: {
-    experience: 'İş Deneyimi',
-    education: 'Eğitim',
-    certificates: 'Sertifikalar ve Belgeler',
-    skills: 'Yetenekler',
-    technical: 'Teknik',
-    soft: 'Kişisel',
-    present: 'Devam Ediyor',
-  },
-  EN: {
-    experience: 'Experience',
-    education: 'Education',
-    certificates: 'Certificates & Documents',
-    skills: 'Skills',
-    technical: 'Technical',
-    soft: 'Soft',
-    present: 'Present',
-  },
-  DE: {
-    experience: 'Berufserfahrung',
-    education: 'Bildung',
-    certificates: 'Zertifikate & Dokumente',
-    skills: 'Fähigkeiten',
-    technical: 'Technisch',
-    soft: 'Persönlich',
-    present: 'Heute',
-  },
-  FR: {
-    experience: 'Expérience',
-    education: 'Éducation',
-    certificates: 'Certificats et Documents',
-    skills: 'Compétences',
-    technical: 'Technique',
-    soft: 'Personnel',
-    present: 'Présent',
-  },
-  ES: {
-    experience: 'Experiencia',
-    education: 'Educación',
-    certificates: 'Certificados y Documentos',
-    skills: 'Habilidades',
-    technical: 'Técnico',
-    soft: 'Personal',
-    present: 'Presente',
-  },
-  IT: {
-    experience: 'Esperienza',
-    education: 'Istruzione',
-    certificates: 'Certificati e Documenti',
-    skills: 'Competenze',
-    technical: 'Tecnico',
-    soft: 'Personale',
-    present: 'Presente',
-  },
-  AR: {
-    experience: 'الخبرة',
-    education: 'التعليم',
-    certificates: 'الشهادات والمستندات',
-    skills: 'المهارات',
-    technical: 'تقني',
-    soft: 'شخصي',
-    present: 'الحاضر',
-  },
-  RU: {
-    experience: 'Опыт работы',
-    education: 'Образование',
-    certificates: 'Сертификаты и документы',
-    skills: 'Навыки',
-    technical: 'Технические',
-    soft: 'Личные',
-    present: 'По настоящее время',
-  },
-  ZH: {
-    experience: '工作经验',
-    education: '教育',
-    certificates: '证书和文件',
-    skills: '技能',
-    technical: '技术',
-    soft: '软技能',
-    present: '至今',
-  },
-  JP: {
-    experience: '職歴',
-    education: '学歴',
-    certificates: '証明書と書類',
-    skills: 'スキル',
-    technical: '技術',
-    soft: 'ソフト',
-    present: '現在',
-  },
-};
-
-export const Step4 = ({ data }: Step4Props) => {
-  const t = translations[data.settings.language] || translations.TR;
+const Step4: React.FC<Step4Props> = ({ data }) => {
   const { personalInfo, experience, education, skills, settings } = data;
 
-  const certificates = education.filter((edu) => edu.fileName);
-  const regularEducation = education.filter((edu) => !edu.fileName);
-
-  const getFontFamily = () => {
+  const getFontFamilyStyle = () => {
     switch (settings.fontFamily) {
-      case 'serif': return 'font-serif';
-      case 'mono': return 'font-mono';
-      default: return 'font-sans';
+      case 'serif': return 'Georgia, serif';
+      case 'mono': return '"JetBrains Mono", monospace';
+      case 'roboto': return '"Roboto", sans-serif';
+      case 'lato': return '"Lato", sans-serif';
+      case 'poppins': return '"Poppins", sans-serif';
+      case 'inter': return '"Inter", sans-serif';
+      default: return 'ui-sans-serif, system-ui, sans-serif';
     }
   };
 
-  const getFontSize = () => {
-    switch (settings.fontSize) {
-      case 'small': return 'text-sm';
-      case 'large': return 'text-lg';
-      default: return 'text-base';
+  const getFontSizeStyle = () => {
+    if (settings.fontSize === 'small') return '12px';
+    if (settings.fontSize === 'base') return '14px';
+    if (settings.fontSize === 'large') return '18px';
+    return `${settings.fontSize}px`;
+  };
+
+  const getLabels = () => {
+    switch (settings.language) {
+      case 'EN':
+        return {
+          experience: 'Experience',
+          education: 'Education',
+          skills: 'Skills',
+          summary: 'Professional Summary',
+          gpa: 'GPA',
+          present: 'Present'
+        };
+      case 'DE':
+        return {
+          experience: 'Berufserfahrung',
+          education: 'Ausbildung',
+          skills: 'Fähigkeiten',
+          summary: 'Berufliches Profil',
+          gpa: 'Note',
+          present: 'Heute'
+        };
+      case 'FR':
+        return {
+          experience: 'Expérience',
+          education: 'Formation',
+          skills: 'Compétences',
+          summary: 'Profil Professionnel',
+          gpa: 'Moyenne',
+          present: 'Présent'
+        };
+      case 'ES':
+        return {
+          experience: 'Experiencia',
+          education: 'Educación',
+          skills: 'Habilidades',
+          summary: 'Perfil Profesional',
+          gpa: 'Promedio',
+          present: 'Presente'
+        };
+      default:
+        return {
+          experience: 'İş Deneyimi',
+          education: 'Eğitim',
+          skills: 'Yetenekler',
+          summary: 'Profesyonel Özet',
+          gpa: 'GNO',
+          present: 'Devam Ediyor'
+        };
     }
   };
 
-  const renderModern = () => (
-    <>
-      <div
-        className="p-8 text-white flex items-center space-x-6"
+  const labels = getLabels();
+
+  // ==========================================
+  // 1. MODERN ŞABLON (Renkli Header, Dikey Akış)
+  // ==========================================
+  const renderModernTemplate = () => (
+    <div className="flex flex-col h-full w-full bg-white">
+      {/* Header */}
+      <div 
+        className="px-10 py-8 text-white flex items-center gap-8 break-inside-avoid"
         style={{ backgroundColor: settings.primaryColor }}
       >
         {personalInfo.photo && (
           <img
             src={personalInfo.photo}
             alt="Profile"
-            className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-sm"
+            className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-md shrink-0"
           />
         )}
         <div className="flex-1">
-          <h1 className="text-4xl font-bold mb-2">{personalInfo.fullName || 'Ad Soyad'}</h1>
-          <div className="flex flex-wrap gap-4 text-sm opacity-90">
+          <h1 className="text-[2.25em] font-bold mb-2 leading-tight">{personalInfo.fullName || 'Ad Soyad'}</h1>
+          <div className="flex flex-wrap gap-x-6 gap-y-2 text-[0.9em] opacity-95 mt-3">
             {personalInfo.email && (
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1.5">
                 <Mail className="w-4 h-4" />
                 <span>{personalInfo.email}</span>
               </div>
             )}
             {personalInfo.phone && (
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1.5">
                 <Phone className="w-4 h-4" />
                 <span>{personalInfo.phone}</span>
               </div>
             )}
             {(personalInfo.city || personalInfo.country) && (
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1.5">
                 <MapPin className="w-4 h-4" />
-                <span>
-                  {[personalInfo.city, personalInfo.country].filter(Boolean).join(', ')}
-                </span>
+                <span>{[personalInfo.city, personalInfo.country].filter(Boolean).join(', ')}</span>
               </div>
             )}
           </div>
         </div>
       </div>
 
-      <div className="p-8 flex-1 grid grid-cols-3 gap-8">
-        <div className="col-span-2 space-y-6">
-          {personalInfo.summary && (
-            <section>
-              <p className="text-gray-700 leading-relaxed">{personalInfo.summary}</p>
-            </section>
-          )}
-
-          {experience.length > 0 && (
-            <section>
-              <h2
-                className="text-xl font-bold mb-4 border-b-2 pb-1"
-                style={{ borderColor: settings.primaryColor, color: settings.primaryColor }}
-              >
-                {t.experience}
-              </h2>
-              <div className="space-y-4">
-                {experience.map((exp) => (
-                  <div key={exp.id}>
-                    <div className="flex justify-between items-baseline mb-1">
-                      <h3 className="font-bold text-gray-900">{exp.jobTitle}</h3>
-                      <span className="text-sm text-gray-500 font-medium">
-                        {exp.startDate} - {exp.current ? t.present : exp.endDate}
-                      </span>
-                    </div>
-                    <div className="text-gray-600 font-medium mb-2">{exp.company}</div>
-                    <p className="text-gray-700 text-sm whitespace-pre-line">{exp.description}</p>
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
-
-          {regularEducation.length > 0 && (
-            <section>
-              <h2
-                className="text-xl font-bold mb-4 border-b-2 pb-1"
-                style={{ borderColor: settings.primaryColor, color: settings.primaryColor }}
-              >
-                {t.education}
-              </h2>
-              <div className="space-y-4">
-                {regularEducation.map((edu) => (
-                  <div key={edu.id}>
-                    <div className="flex justify-between items-baseline mb-1">
-                      <h3 className="font-bold text-gray-900">{edu.degree}</h3>
-                      <span className="text-sm text-gray-500 font-medium">{edu.graduationDate}</span>
-                    </div>
-                    <div className="text-gray-600 font-medium">
-                      {edu.school} {edu.gpa && <span className="text-gray-400">| GPA: {edu.gpa}</span>}
-                    </div>
-                    {edu.description && (
-                      <p className="text-gray-700 text-sm mt-1">{edu.description}</p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
-        </div>
-
-        <div className="space-y-6">
-          {(skills.technical.length > 0 || skills.soft.length > 0) && (
-            <section>
-              <h2
-                className="text-xl font-bold mb-4 border-b-2 pb-1"
-                style={{ borderColor: settings.primaryColor, color: settings.primaryColor }}
-              >
-                {t.skills}
-              </h2>
-              
-              {skills.technical.length > 0 && (
-                <div className="mb-4">
-                  <h3 className="font-semibold text-gray-700 mb-2 text-sm uppercase tracking-wider">{t.technical}</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {skills.technical.map((skill, index) => (
-                      <span
-                        key={index}
-                        className="px-2 py-1 bg-gray-100 text-gray-700 text-sm rounded-md"
-                      >
-                        {skill}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {skills.soft.length > 0 && (
-                <div>
-                  <h3 className="font-semibold text-gray-700 mb-2 text-sm uppercase tracking-wider">{t.soft}</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {skills.soft.map((skill, index) => (
-                      <span
-                        key={index}
-                        className="px-2 py-1 bg-gray-100 text-gray-700 text-sm rounded-md"
-                      >
-                        {skill}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </section>
-          )}
-
-          {certificates.length > 0 && (
-            <section>
-              <h2
-                className="text-xl font-bold mb-4 border-b-2 pb-1"
-                style={{ borderColor: settings.primaryColor, color: settings.primaryColor }}
-              >
-                {t.certificates}
-              </h2>
-              <div className="space-y-3">
-                {certificates.map((cert) => (
-                  <div key={cert.id} className="text-sm">
-                    <div className="font-bold text-gray-900">{cert.degree}</div>
-                    <div className="text-gray-600">{cert.school}</div>
-                    <div className="text-gray-500 text-xs mt-1 flex items-center gap-1">
-                      <span className="truncate max-w-[150px]" title={cert.fileName}>{cert.fileName}</span>
-                      {cert.graduationDate && <span>• {cert.graduationDate}</span>}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
-        </div>
-      </div>
-    </>
-  );
-
-  const renderClassic = () => (
-    <div className="p-10 flex-1 flex flex-col space-y-8">
-      <div className="text-center border-b-2 pb-6" style={{ borderColor: settings.primaryColor }}>
-        {personalInfo.photo && (
-          <img src={personalInfo.photo} alt="Profile" className="w-24 h-24 rounded-full object-cover mx-auto mb-4 border-2" style={{ borderColor: settings.primaryColor }} />
+      {/* Content - Tam Genişlik Dikey Akış */}
+      <div className="p-10 flex flex-col gap-8 flex-1">
+        {personalInfo.summary && (
+          <section className="break-inside-avoid w-full">
+            <h2 
+              className="text-[1.15em] font-bold mb-3 uppercase tracking-wider border-b-2 pb-1"
+              style={{ borderColor: settings.primaryColor, color: settings.primaryColor }}
+            >
+              {labels.summary}
+            </h2>
+            <p className="text-[1em] leading-relaxed text-gray-700 whitespace-pre-wrap break-words text-justify">
+              {personalInfo.summary}
+            </p>
+          </section>
         )}
-        <h1 className="text-4xl font-bold mb-3" style={{ color: settings.primaryColor }}>{personalInfo.fullName || 'Ad Soyad'}</h1>
-        <div className="flex flex-wrap justify-center gap-4 text-sm text-gray-600">
-          {personalInfo.email && <span>{personalInfo.email}</span>}
-          {personalInfo.phone && <span>• {personalInfo.phone}</span>}
-          {(personalInfo.city || personalInfo.country) && <span>• {[personalInfo.city, personalInfo.country].filter(Boolean).join(', ')}</span>}
-        </div>
-      </div>
 
-      {personalInfo.summary && (
-        <section>
-          <p className="text-gray-800 leading-relaxed text-center italic">{personalInfo.summary}</p>
-        </section>
-      )}
-
-      {experience.length > 0 && (
-        <section>
-          <h2 className="text-xl font-bold mb-4 border-b pb-1 uppercase tracking-wider" style={{ color: settings.primaryColor, borderColor: '#e5e7eb' }}>{t.experience}</h2>
-          <div className="space-y-5">
-            {experience.map((exp) => (
-              <div key={exp.id}>
-                <div className="flex justify-between items-baseline mb-1">
-                  <h3 className="font-bold text-gray-900 text-lg">{exp.jobTitle}</h3>
-                  <span className="text-sm font-medium" style={{ color: settings.primaryColor }}>{exp.startDate} - {exp.current ? t.present : exp.endDate}</span>
+        {experience.length > 0 && (
+          <section className="w-full">
+            <h2 
+              className="text-[1.15em] font-bold mb-4 uppercase tracking-wider border-b-2 pb-1 break-inside-avoid"
+              style={{ borderColor: settings.primaryColor, color: settings.primaryColor }}
+            >
+              {labels.experience}
+            </h2>
+            <div className="flex flex-col gap-6">
+              {experience.map((exp) => (
+                <div key={exp.id} className="break-inside-avoid w-full">
+                  <div className="flex justify-between items-baseline mb-1 gap-4">
+                    <h3 className="text-[1.05em] font-bold text-gray-900 break-words">{exp.jobTitle}</h3>
+                    <span className="text-[0.9em] text-gray-600 font-medium shrink-0">
+                      {exp.startDate} - {exp.current ? labels.present : exp.endDate}
+                    </span>
+                  </div>
+                  <div className="text-[1em] font-medium text-gray-700 mb-2">{exp.company}</div>
+                  <p className="text-[1em] text-gray-600 whitespace-pre-wrap break-words leading-relaxed text-justify">
+                    {exp.description}
+                  </p>
                 </div>
-                <div className="text-gray-700 font-medium mb-2">{exp.company}</div>
-                <p className="text-gray-600 text-sm whitespace-pre-line">{exp.description}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {regularEducation.length > 0 && (
-        <section>
-          <h2 className="text-xl font-bold mb-4 border-b pb-1 uppercase tracking-wider" style={{ color: settings.primaryColor, borderColor: '#e5e7eb' }}>{t.education}</h2>
-          <div className="space-y-4">
-            {regularEducation.map((edu) => (
-              <div key={edu.id}>
-                <div className="flex justify-between items-baseline mb-1">
-                  <h3 className="font-bold text-gray-900 text-lg">{edu.degree}</h3>
-                  <span className="text-sm font-medium" style={{ color: settings.primaryColor }}>{edu.graduationDate}</span>
-                </div>
-                <div className="text-gray-700 font-medium">{edu.school} {edu.gpa && <span className="text-gray-500">| GPA: {edu.gpa}</span>}</div>
-                {edu.description && <p className="text-gray-600 text-sm mt-1">{edu.description}</p>}
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      <div className="grid grid-cols-2 gap-8">
-        {(skills.technical.length > 0 || skills.soft.length > 0) && (
-          <section>
-            <h2 className="text-xl font-bold mb-4 border-b pb-1 uppercase tracking-wider" style={{ color: settings.primaryColor, borderColor: '#e5e7eb' }}>{t.skills}</h2>
-            <div className="space-y-3 text-sm">
-              {skills.technical.length > 0 && (
-                <div><span className="font-bold text-gray-800">{t.technical}:</span> <span className="text-gray-600">{skills.technical.join(', ')}</span></div>
-              )}
-              {skills.soft.length > 0 && (
-                <div><span className="font-bold text-gray-800">{t.soft}:</span> <span className="text-gray-600">{skills.soft.join(', ')}</span></div>
-              )}
+              ))}
             </div>
           </section>
         )}
-        {certificates.length > 0 && (
-          <section>
-            <h2 className="text-xl font-bold mb-4 border-b pb-1 uppercase tracking-wider" style={{ color: settings.primaryColor, borderColor: '#e5e7eb' }}>{t.certificates}</h2>
-            <ul className="list-disc list-inside space-y-2 text-sm text-gray-700">
-              {certificates.map((cert) => (
-                <li key={cert.id}>
-                  <span className="font-bold">{cert.degree}</span> - {cert.school} ({cert.graduationDate})
-                </li>
+
+        {education.length > 0 && (
+          <section className="w-full">
+            <h2 
+              className="text-[1.15em] font-bold mb-4 uppercase tracking-wider border-b-2 pb-1 break-inside-avoid"
+              style={{ borderColor: settings.primaryColor, color: settings.primaryColor }}
+            >
+              {labels.education}
+            </h2>
+            <div className="flex flex-col gap-5">
+              {education.map((edu) => (
+                <div key={edu.id} className="break-inside-avoid w-full">
+                  <div className="flex justify-between items-baseline mb-1 gap-4">
+                    <h3 className="text-[1.05em] font-bold text-gray-900 break-words">{edu.degree}</h3>
+                    <span className="text-[0.9em] text-gray-600 font-medium shrink-0">
+                      {edu.graduationDate}
+                    </span>
+                  </div>
+                  <div className="text-[1em] text-gray-700 font-medium mb-1">
+                    {edu.school} 
+                    {edu.gpa && <span className="ml-2 text-gray-500 font-normal">| {labels.gpa}: {edu.gpa}</span>}
+                  </div>
+                  {edu.description && (
+                    <p className="text-[1em] text-gray-600 mt-1 whitespace-pre-wrap break-words text-justify">
+                      {edu.description}
+                    </p>
+                  )}
+                </div>
               ))}
-            </ul>
+            </div>
+          </section>
+        )}
+
+        {(skills.technical.length > 0 || skills.soft.length > 0) && (
+          <section className="break-inside-avoid w-full">
+            <h2 
+              className="text-[1.15em] font-bold mb-4 uppercase tracking-wider border-b-2 pb-1"
+              style={{ borderColor: settings.primaryColor, color: settings.primaryColor }}
+            >
+              {labels.skills}
+            </h2>
+            <div className="flex flex-wrap gap-2">
+              {[...skills.technical, ...skills.soft].map((skill, index) => (
+                <span
+                  key={index}
+                  className="px-3 py-1.5 bg-gray-100 text-gray-800 rounded-md text-[0.95em] font-medium break-words"
+                >
+                  {skill}
+                </span>
+              ))}
+            </div>
           </section>
         )}
       </div>
     </div>
   );
 
-  const renderMinimal = () => (
-    <div className="p-10 flex-1 grid grid-cols-12 gap-8">
-      <div className="col-span-4 space-y-8 border-r border-gray-200 pr-6">
-        <div>
-          {personalInfo.photo && (
-            <img src={personalInfo.photo} alt="Profile" className="w-32 h-32 rounded-xl object-cover mb-6 shadow-sm" />
+  // ==========================================
+  // 2. KLASİK ŞABLON (Ortalanmış Header, Dikey Akış)
+  // ==========================================
+  const renderClassicTemplate = () => (
+    <div className="p-12 flex flex-col h-full w-full bg-white">
+      {/* Header */}
+      <div className="text-center border-b-2 pb-6 mb-8 flex flex-col items-center break-inside-avoid" style={{ borderColor: settings.primaryColor }}>
+        {personalInfo.photo && (
+          <img
+            src={personalInfo.photo}
+            alt="Profile"
+            className="w-32 h-32 rounded-full object-cover border-2 shadow-sm mb-5"
+            style={{ borderColor: settings.primaryColor }}
+          />
+        )}
+        <h1 className="text-[2.5em] font-bold text-gray-900 mb-3 uppercase tracking-wide leading-tight">
+          {personalInfo.fullName || 'Ad Soyad'}
+        </h1>
+        <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-[0.95em] text-gray-700">
+          {personalInfo.email && <span>{personalInfo.email}</span>}
+          {personalInfo.phone && <span>• {personalInfo.phone}</span>}
+          {(personalInfo.city || personalInfo.country) && (
+            <span>• {[personalInfo.city, personalInfo.country].filter(Boolean).join(', ')}</span>
           )}
-          <h1 className="text-3xl font-light tracking-tight mb-4 text-gray-900">{personalInfo.fullName || 'Ad Soyad'}</h1>
-          <div className="space-y-2 text-sm text-gray-500">
-            {personalInfo.email && <div className="flex items-center gap-2"><Mail className="w-4 h-4" /> <span className="truncate">{personalInfo.email}</span></div>}
-            {personalInfo.phone && <div className="flex items-center gap-2"><Phone className="w-4 h-4" /> <span>{personalInfo.phone}</span></div>}
-            {(personalInfo.city || personalInfo.country) && <div className="flex items-center gap-2"><MapPin className="w-4 h-4" /> <span>{[personalInfo.city, personalInfo.country].filter(Boolean).join(', ')}</span></div>}
-          </div>
         </div>
-
-        {(skills.technical.length > 0 || skills.soft.length > 0) && (
-          <div>
-            <h2 className="text-sm font-bold uppercase tracking-widest text-gray-400 mb-4">{t.skills}</h2>
-            <div className="space-y-4">
-              {skills.technical.length > 0 && (
-                <div>
-                  <h3 className="text-xs font-semibold text-gray-700 mb-2">{t.technical}</h3>
-                  <div className="flex flex-wrap gap-1">
-                    {skills.technical.map((s, i) => <span key={i} className="text-xs px-2 py-1 bg-gray-100 rounded text-gray-600">{s}</span>)}
-                  </div>
-                </div>
-              )}
-              {skills.soft.length > 0 && (
-                <div>
-                  <h3 className="text-xs font-semibold text-gray-700 mb-2">{t.soft}</h3>
-                  <div className="flex flex-wrap gap-1">
-                    {skills.soft.map((s, i) => <span key={i} className="text-xs px-2 py-1 bg-gray-100 rounded text-gray-600">{s}</span>)}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {certificates.length > 0 && (
-          <div>
-            <h2 className="text-sm font-bold uppercase tracking-widest text-gray-400 mb-4">{t.certificates}</h2>
-            <div className="space-y-3">
-              {certificates.map((cert) => (
-                <div key={cert.id} className="text-xs">
-                  <div className="font-semibold text-gray-800">{cert.degree}</div>
-                  <div className="text-gray-500">{cert.school}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
 
-      <div className="col-span-8 space-y-8">
+      {/* Content - Tam Genişlik Dikey Akış */}
+      <div className="flex flex-col gap-8 w-full">
         {personalInfo.summary && (
-          <section>
-            <h2 className="text-sm font-bold uppercase tracking-widest text-gray-400 mb-4">Profil</h2>
-            <p className="text-gray-600 leading-relaxed text-sm">{personalInfo.summary}</p>
+          <section className="break-inside-avoid w-full">
+            <h2 className="text-[1.15em] font-bold uppercase tracking-widest text-gray-900 mb-3 text-center">
+              {labels.summary}
+            </h2>
+            <p className="text-[1em] leading-relaxed text-gray-800 text-justify whitespace-pre-wrap break-words">
+              {personalInfo.summary}
+            </p>
           </section>
         )}
 
         {experience.length > 0 && (
-          <section>
-            <h2 className="text-sm font-bold uppercase tracking-widest text-gray-400 mb-4">{t.experience}</h2>
-            <div className="space-y-6">
+          <section className="w-full">
+            <h2 className="text-[1.15em] font-bold uppercase tracking-widest text-gray-900 mb-5 mt-2 break-inside-avoid text-center">
+              {labels.experience}
+            </h2>
+            <div className="flex flex-col gap-6">
               {experience.map((exp) => (
-                <div key={exp.id} className="relative pl-4 border-l-2" style={{ borderColor: settings.primaryColor }}>
-                  <div className="absolute w-2 h-2 rounded-full -left-[5px] top-1.5" style={{ backgroundColor: settings.primaryColor }} />
-                  <div className="flex justify-between items-baseline mb-1">
-                    <h3 className="font-semibold text-gray-900">{exp.jobTitle}</h3>
-                    <span className="text-xs text-gray-400">{exp.startDate} - {exp.current ? t.present : exp.endDate}</span>
+                <div key={exp.id} className="break-inside-avoid w-full">
+                  <div className="flex justify-between items-baseline gap-4 mb-1">
+                    <h3 className="text-[1.05em] font-bold text-gray-900 break-words">{exp.jobTitle}</h3>
+                    <span className="text-[0.95em] text-gray-700 italic shrink-0">
+                      {exp.startDate} - {exp.current ? labels.present : exp.endDate}
+                    </span>
                   </div>
-                  <div className="text-sm text-gray-500 mb-2">{exp.company}</div>
-                  <p className="text-gray-600 text-sm whitespace-pre-line">{exp.description}</p>
+                  <div className="text-[1em] text-gray-800 font-medium mb-2">{exp.company}</div>
+                  <p className="text-[1em] text-gray-700 leading-relaxed text-justify whitespace-pre-wrap break-words">
+                    {exp.description}
+                  </p>
                 </div>
               ))}
             </div>
           </section>
         )}
 
-        {regularEducation.length > 0 && (
-          <section>
-            <h2 className="text-sm font-bold uppercase tracking-widest text-gray-400 mb-4">{t.education}</h2>
-            <div className="space-y-6">
-              {regularEducation.map((edu) => (
-                <div key={edu.id} className="relative pl-4 border-l-2" style={{ borderColor: settings.primaryColor }}>
-                  <div className="absolute w-2 h-2 rounded-full -left-[5px] top-1.5" style={{ backgroundColor: settings.primaryColor }} />
-                  <div className="flex justify-between items-baseline mb-1">
-                    <h3 className="font-semibold text-gray-900">{edu.degree}</h3>
-                    <span className="text-xs text-gray-400">{edu.graduationDate}</span>
+        {education.length > 0 && (
+          <section className="w-full">
+            <h2 className="text-[1.15em] font-bold uppercase tracking-widest text-gray-900 mb-5 mt-2 break-inside-avoid text-center">
+              {labels.education}
+            </h2>
+            <div className="flex flex-col gap-5">
+              {education.map((edu) => (
+                <div key={edu.id} className="break-inside-avoid w-full">
+                  <div className="flex justify-between items-baseline gap-4 mb-1">
+                    <h3 className="text-[1.05em] font-bold text-gray-900 break-words">{edu.degree}</h3>
+                    <span className="text-[0.95em] text-gray-700 italic shrink-0">
+                      {edu.graduationDate}
+                    </span>
                   </div>
-                  <div className="text-sm text-gray-500">{edu.school} {edu.gpa && <span>| GPA: {edu.gpa}</span>}</div>
-                  {edu.description && <p className="text-gray-600 text-sm mt-1">{edu.description}</p>}
+                  <div className="text-[1em] text-gray-800 font-medium">
+                    {edu.school}
+                    {edu.gpa && <span className="ml-2 text-gray-600 font-normal">| {labels.gpa}: {edu.gpa}</span>}
+                  </div>
+                  {edu.description && (
+                    <p className="text-[1em] text-gray-700 mt-2 whitespace-pre-wrap break-words text-justify">
+                      {edu.description}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {(skills.technical.length > 0 || skills.soft.length > 0) && (
+          <section className="break-inside-avoid w-full text-center">
+            <h2 className="text-[1.15em] font-bold uppercase tracking-widest text-gray-900 mb-4 mt-2">
+              {labels.skills}
+            </h2>
+            <p className="text-[1em] text-gray-800 leading-relaxed break-words">
+              {[...skills.technical, ...skills.soft].join(' • ')}
+            </p>
+          </section>
+        )}
+      </div>
+    </div>
+  );
+
+  // ==========================================
+  // 3. MİNİMAL ŞABLON (Sol İnce Bar, Sağ Geniş Alan)
+  // ==========================================
+  const renderMinimalTemplate = () => (
+    <div className="flex flex-row h-full w-full bg-white">
+      
+      {/* Sol İnce Bar (İletişim & Yetenekler) */}
+      <div 
+        className="w-[35%] py-12 px-8 flex flex-col items-center border-r border-gray-200"
+        style={{ 
+          backgroundColor: settings.primaryColor === '#ffffff' ? '#ffffff' : `${settings.primaryColor}15` 
+        }}
+      >
+        <div className="flex flex-col items-center text-center break-inside-avoid w-full">
+          {personalInfo.photo && (
+            <img
+              src={personalInfo.photo}
+              alt="Profile"
+              className="w-40 h-40 rounded-full object-cover shadow-md mb-6 border-4 border-white"
+            />
+          )}
+          <h1 className="text-[2.2em] font-bold text-gray-900 tracking-tight mb-6 leading-tight">
+            {personalInfo.fullName || 'Ad Soyad'}
+          </h1>
+          
+          <div className="flex flex-col gap-3 text-[0.9em] text-gray-700 w-full items-center text-center mb-10">
+            {personalInfo.email && (
+              <div className="flex items-center gap-2 break-all justify-center">
+                <Mail className="w-4 h-4 shrink-0" style={{ color: settings.primaryColor }} />
+                <span>{personalInfo.email}</span>
+              </div>
+            )}
+            {personalInfo.phone && (
+              <div className="flex items-center gap-2 justify-center">
+                <Phone className="w-4 h-4 shrink-0" style={{ color: settings.primaryColor }} />
+                <span>{personalInfo.phone}</span>
+              </div>
+            )}
+            {(personalInfo.city || personalInfo.country) && (
+              <div className="flex items-center gap-2 justify-center">
+                <MapPin className="w-4 h-4 shrink-0" style={{ color: settings.primaryColor }} />
+                <span>{[personalInfo.city, personalInfo.country].filter(Boolean).join(', ')}</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {(skills.technical.length > 0 || skills.soft.length > 0) && (
+          <section className="break-inside-avoid w-full mt-4 pt-8 border-t" style={{ borderColor: `${settings.primaryColor}30` }}>
+            <h2 className="text-[1.1em] font-bold uppercase tracking-widest text-gray-900 mb-5 text-center">
+              {labels.skills}
+            </h2>
+            <ul className="flex flex-col gap-3 items-center text-center">
+              {[...skills.technical, ...skills.soft].map((skill, index) => (
+                <li key={index} className="text-[0.95em] text-gray-800 break-words font-medium">
+                  {skill}
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+      </div>
+
+      {/* Sağ Geniş Alan (Özet, Deneyim, Eğitim) */}
+      <div className="w-[65%] p-12 flex flex-col gap-10">
+        {personalInfo.summary && (
+          <section className="break-inside-avoid w-full">
+            <h2 className="text-[1.15em] font-bold uppercase tracking-widest text-gray-800 mb-4 flex items-center gap-3">
+              <span className="w-6 h-0.5" style={{ backgroundColor: settings.primaryColor }}></span>
+              {labels.summary}
+            </h2>
+            <p className="text-[1em] leading-relaxed text-gray-700 font-light whitespace-pre-wrap break-words text-justify">
+              {personalInfo.summary}
+            </p>
+          </section>
+        )}
+
+        {experience.length > 0 && (
+          <section className="w-full">
+            <h2 className="text-[1.15em] font-bold uppercase tracking-widest text-gray-800 mb-6 break-inside-avoid flex items-center gap-3">
+              <span className="w-6 h-0.5" style={{ backgroundColor: settings.primaryColor }}></span>
+              {labels.experience}
+            </h2>
+            <div className="flex flex-col gap-8">
+              {experience.map((exp) => (
+                <div key={exp.id} className="break-inside-avoid w-full">
+                  <h3 className="text-[1.1em] font-semibold text-gray-900 break-words">{exp.jobTitle}</h3>
+                  <div className="flex flex-wrap items-center gap-2 text-[0.9em] text-gray-500 mt-1 mb-3">
+                    <span className="font-medium text-gray-700 break-words">{exp.company}</span>
+                    <span>•</span>
+                    <span className="shrink-0">{exp.startDate} - {exp.current ? labels.present : exp.endDate}</span>
+                  </div>
+                  <p className="text-[1em] text-gray-700 leading-relaxed font-light whitespace-pre-wrap break-words text-justify">
+                    {exp.description}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {education.length > 0 && (
+          <section className="w-full">
+            <h2 className="text-[1.15em] font-bold uppercase tracking-widest text-gray-800 mb-6 break-inside-avoid flex items-center gap-3">
+              <span className="w-6 h-0.5" style={{ backgroundColor: settings.primaryColor }}></span>
+              {labels.education}
+            </h2>
+            <div className="flex flex-col gap-6">
+              {education.map((edu) => (
+                <div key={edu.id} className="break-inside-avoid w-full">
+                  <h3 className="text-[1.1em] font-semibold text-gray-900 break-words">{edu.degree}</h3>
+                  <div className="flex flex-wrap items-center gap-2 text-[0.9em] text-gray-500 mt-1 mb-2">
+                    <span className="font-medium text-gray-700 break-words">{edu.school}</span>
+                    <span>•</span>
+                    <span className="shrink-0">{edu.graduationDate}</span>
+                  </div>
+                  {edu.gpa && (
+                    <div className="text-[0.9em] text-gray-600 mb-2">
+                      <span className="font-medium">{labels.gpa}:</span> {edu.gpa}
+                    </div>
+                  )}
+                  {edu.description && (
+                    <p className="text-[1em] text-gray-700 leading-relaxed font-light whitespace-pre-wrap break-words text-justify">
+                      {edu.description}
+                    </p>
+                  )}
                 </div>
               ))}
             </div>
@@ -484,16 +464,22 @@ export const Step4 = ({ data }: Step4Props) => {
   );
 
   return (
-    <div
-      className={`bg-white shadow-xl a4-paper ${getFontFamily()} ${getFontSize()} flex flex-col`}
-      style={{
+    <div 
+      className="bg-white shadow-xl flex flex-col mx-auto print:shadow-none overflow-x-hidden max-w-full"
+      style={{ 
         color: '#1f2937',
-        transformOrigin: 'top center',
+        fontFamily: getFontFamilyStyle(),
+        fontSize: getFontSizeStyle(),
+        width: '210mm',
+        minHeight: '297mm', // Minimum 1 A4 boyutu
+        height: 'auto',     // İçerik uzadıkça sayfa uzar (Taşmayı engeller)
       }}
     >
-      {settings.template === 'classic' && renderClassic()}
-      {settings.template === 'minimal' && renderMinimal()}
-      {settings.template === 'modern' && renderModern()}
+      {settings.template === 'modern' && renderModernTemplate()}
+      {settings.template === 'classic' && renderClassicTemplate()}
+      {settings.template === 'minimal' && renderMinimalTemplate()}
     </div>
   );
 };
+
+export default Step4;

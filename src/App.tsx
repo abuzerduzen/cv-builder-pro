@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Step1 } from './components/Step1';
 import { Step2 } from './components/Step2';
 import { Step3 } from './components/Step3';
-import { Step4 } from './components/Step4';
+import Step4 from './components/Step4';
 import { ProgressBar } from './components/ProgressBar';
 import type { ResumeData } from './types';
-import { FileText, Download, Sparkles, Settings, ChevronRight, ChevronLeft } from 'lucide-react';
+import { FileText, Download, Sparkles, Settings, ChevronRight, ChevronLeft, Loader2, User, Briefcase, GraduationCap } from 'lucide-react';
 import { GoogleGenAI } from '@google/genai';
 
 const initialData: ResumeData = {
@@ -13,9 +13,9 @@ const initialData: ResumeData = {
     fullName: '',
     email: '',
     phone: '',
-    country: '',
-    city: '',
     summary: '',
+    city: '',
+    country: '',
   },
   experience: [],
   education: [],
@@ -25,10 +25,10 @@ const initialData: ResumeData = {
   },
   settings: {
     primaryColor: '#2563eb',
-    fontFamily: 'sans',
-    fontSize: 'base',
-    template: 'modern',
+    fontFamily: 'inter',
+    fontSize: '14', // Default font size in px
     language: 'TR',
+    template: 'modern',
   },
 };
 
@@ -43,13 +43,44 @@ function App() {
   const [resumeScore, setResumeScore] = useState(0);
   const [aiFeedback, setAiFeedback] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isTranslating, setIsTranslating] = useState(false);
   const [textScale, setTextScale] = useState(100);
+  
+  // Otomatik ölçeklendirme için referans ve state
+  const previewContainerRef = useRef<HTMLDivElement>(null);
+  const [previewScale, setPreviewScale] = useState(1);
 
   const totalSteps = 4;
 
+  // CV Skorunu Hesapla
   useEffect(() => {
     calculateResumeScore();
   }, [formData]);
+
+  // Ekran boyutuna göre A4 kağıdını otomatik ölçeklendir
+  useEffect(() => {
+    const updateScale = () => {
+      if (previewContainerRef.current) {
+        const containerWidth = previewContainerRef.current.clientWidth;
+        const containerHeight = previewContainerRef.current.clientHeight;
+        
+        // A4 kağıdının piksel cinsinden yaklaşık boyutları (96dpi)
+        const A4_WIDTH = 794;
+        const A4_HEIGHT = 1123;
+
+        // Hem genişliğe hem yüksekliğe sığması için %5 boşluk (0.95) bırakarak ölçekle
+        const scaleX = containerWidth / A4_WIDTH;
+        const scaleY = containerHeight / A4_HEIGHT;
+        const newScale = Math.min(scaleX, scaleY) * 0.95;
+
+        setPreviewScale(newScale);
+      }
+    };
+
+    updateScale();
+    window.addEventListener('resize', updateScale);
+    return () => window.removeEventListener('resize', updateScale);
+  }, []);
 
   const calculateResumeScore = () => {
     let score = 0;
@@ -72,6 +103,94 @@ function App() {
     if (skills.soft.length > 0) score += 10;
 
     setResumeScore(Math.min(100, score));
+  };
+
+  const handleLanguageChange = async (newLang: string) => {
+    const oldLang = formData.settings.language;
+    updateSettings({ language: newLang as any });
+
+    if (oldLang === newLang) return;
+
+    // Check if there is actual data to translate
+    const hasData = formData.personalInfo.summary || formData.experience.length > 0 || formData.education.length > 0 || (formData.skills.technical.length > 0 || formData.skills.soft.length > 0);
+    if (!hasData) return;
+
+    setIsTranslating(true);
+    try {
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+      if (!apiKey) {
+        alert('Gemini API anahtarı bulunamadı. Çeviri yapılamıyor.');
+        setIsTranslating(false);
+        return;
+      }
+
+      const ai = new GoogleGenAI({ apiKey });
+      
+      const translatableData = {
+        personalInfo: {
+          fullName: formData.personalInfo.fullName,
+          summary: formData.personalInfo.summary,
+          city: formData.personalInfo.city,
+          country: formData.personalInfo.country,
+        },
+        experience: formData.experience.map(exp => ({
+          id: exp.id,
+          jobTitle: exp.jobTitle,
+          company: exp.company,
+          description: exp.description,
+        })),
+        education: formData.education.map(edu => ({
+          id: edu.id,
+          degree: edu.degree,
+          school: edu.school,
+          description: edu.description,
+        })),
+        skills: formData.skills
+      };
+
+      const prompt = `Translate the following JSON data to ${newLang} language. 
+      Keep the exact same JSON structure, keys, and IDs. 
+      Only translate the string values. Do not translate IDs or keys.
+      JSON Data:
+      ${JSON.stringify(translatableData)}`;
+
+      const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: prompt,
+        config: {
+          responseMimeType: 'application/json',
+        }
+      });
+
+      if (response.text) {
+        const translated = JSON.parse(response.text);
+        
+        setFormData(prev => ({
+          ...prev,
+          personalInfo: {
+            ...prev.personalInfo,
+            fullName: translated.personalInfo.fullName || prev.personalInfo.fullName,
+            summary: translated.personalInfo.summary || prev.personalInfo.summary,
+            city: translated.personalInfo.city || prev.personalInfo.city,
+            country: translated.personalInfo.country || prev.personalInfo.country,
+          },
+          experience: prev.experience.map(exp => {
+            const transExp = translated.experience?.find((t: any) => t.id === exp.id);
+            return transExp ? { ...exp, ...transExp } : exp;
+          }),
+          education: prev.education.map(edu => {
+            const transEdu = translated.education?.find((t: any) => t.id === edu.id);
+            return transEdu ? { ...edu, ...transEdu } : edu;
+          }),
+          skills: translated.skills || prev.skills
+        }));
+      }
+    } catch (error) {
+      console.error('Translation error:', error);
+      alert('Çeviri sırasında bir hata oluştu.');
+    } finally {
+      setIsTranslating(false);
+    }
   };
 
   const analyzeWithAI = async () => {
@@ -143,94 +262,162 @@ function App() {
   const renderStep = () => {
     switch (currentStep) {
       case 1:
-        return <Step1 data={formData.personalInfo} updateData={updatePersonalInfo} />;
+        return (
+          <div className="animate-fade-in">
+            <div className="flex items-center space-x-3 mb-6">
+              <div className="bg-blue-100 p-2 rounded-lg">
+                <User className="w-6 h-6 text-blue-600" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-800">Kişisel Bilgiler</h2>
+            </div>
+            <Step1 data={formData.personalInfo} updateData={updatePersonalInfo} />
+          </div>
+        );
       case 2:
-        return <Step2 data={formData.experience} updateData={updateExperience} />;
+        return (
+          <div className="animate-fade-in">
+            <div className="flex items-center space-x-3 mb-6">
+              <div className="bg-blue-100 p-2 rounded-lg">
+                <Briefcase className="w-6 h-6 text-blue-600" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-800">İş Deneyimi</h2>
+            </div>
+            <Step2 data={formData.experience} updateData={updateExperience} />
+          </div>
+        );
       case 3:
-        return <Step3 data={formData.education} updateData={updateEducation} />;
+        return (
+          <div className="animate-fade-in">
+            <div className="flex items-center space-x-3 mb-6">
+              <div className="bg-blue-100 p-2 rounded-lg">
+                <GraduationCap className="w-6 h-6 text-blue-600" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-800">Eğitim & Yetenekler</h2>
+            </div>
+            <Step3 
+              data={formData.education}
+              updateData={updateEducation}
+            />
+          </div>
+        );
       case 4:
         return (
-          <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-gray-900">Ayarlar ve İndirme</h2>
+          <div className="animate-fade-in">
+            <div className="flex items-center space-x-3 mb-6">
+              <div className="bg-blue-100 p-2 rounded-lg">
+                <Settings className="w-6 h-6 text-blue-600" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-800">Tasarım & Ayarlar</h2>
+            </div>
             
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 bg-gray-50 p-6 rounded-xl border border-gray-100">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Tema Rengi</label>
-                <div className="flex flex-wrap gap-3">
-                  {colors.map((color) => (
+                <div className="flex space-x-3">
+                  {colors.map(color => (
                     <button
                       key={color}
                       onClick={() => updateSettings({ primaryColor: color })}
-                      className={`w-8 h-8 rounded-full border-2 ${
+                      className={`w-8 h-8 rounded-full border-2 transition-transform hover:scale-110 ${
                         formData.settings.primaryColor === color ? 'border-gray-900 scale-110' : 'border-transparent'
-                      } transition-all`}
+                      }`}
                       style={{ backgroundColor: color }}
                     />
                   ))}
                 </div>
               </div>
-
+              
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Şablon</label>
-                <div className="flex flex-wrap gap-2">
-                  {['modern', 'classic', 'minimal'].map((tpl) => (
-                    <button
-                      key={tpl}
-                      onClick={() => updateSettings({ template: tpl as any })}
-                      className={`px-4 py-2 rounded-md border text-sm capitalize ${
-                        formData.settings.template === tpl
-                          ? 'bg-blue-50 border-blue-500 text-blue-700'
-                          : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
-                      }`}
-                    >
-                      {tpl}
-                    </button>
-                  ))}
-                </div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Font Ailesi</label>
+                <select
+                  value={formData.settings.fontFamily}
+                  onChange={(e) => updateSettings({ fontFamily: e.target.value })}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
+                >
+                  <option value="inter">Inter (Modern)</option>
+                  <option value="roboto">Roboto (Klasik)</option>
+                  <option value="lato">Lato (Zarif)</option>
+                  <option value="poppins">Poppins (Yuvarlak)</option>
+                  <option value="serif">Georgia (Geleneksel)</option>
+                  <option value="mono">JetBrains Mono (Teknik)</option>
+                </select>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Yazı Tipi</label>
-                <div className="flex flex-wrap gap-2">
-                  {fonts.map((font) => (
-                    <button
-                      key={font}
-                      onClick={() => updateSettings({ fontFamily: font })}
-                      className={`px-4 py-2 rounded-md border text-sm capitalize ${
-                        formData.settings.fontFamily === font
-                          ? 'bg-blue-50 border-blue-500 text-blue-700'
-                          : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
-                      }`}
-                    >
-                      {font}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Metin Ölçeği (%)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Metin Ölçeği (Kağıt Zoom: %{textScale})
+                </label>
                 <input
-                  type="number"
+                  type="range"
                   min="50"
                   max="200"
                   value={textScale}
                   onChange={(e) => setTextScale(Number(e.target.value))}
+                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Yazı Boyutu (px) - Sadece Metinler
+                </label>
+                <input
+                  type="number"
+                  min="10"
+                  max="30"
+                  value={formData.settings.fontSize === 'base' ? '14' : formData.settings.fontSize.replace('px', '')}
+                  onChange={(e) => updateSettings({ fontSize: e.target.value })}
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Dil</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Dil (Otomatik Çeviri)</label>
                 <select
                   value={formData.settings.language}
-                  onChange={(e) => updateSettings({ language: e.target.value as any })}
+                  onChange={(e) => handleLanguageChange(e.target.value)}
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
                 >
                   {languages.map((lang) => (
                     <option key={lang} value={lang}>{lang}</option>
                   ))}
                 </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Şablon Stili</label>
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    onClick={() => updateSettings({ template: 'modern' })}
+                    className={`px-3 py-2 text-sm font-medium rounded-md border transition-colors ${
+                      formData.settings.template === 'modern'
+                        ? 'bg-blue-50 border-blue-500 text-blue-700'
+                        : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    Modern
+                  </button>
+                  <button
+                    onClick={() => updateSettings({ template: 'classic' })}
+                    className={`px-3 py-2 text-sm font-medium rounded-md border transition-colors ${
+                      formData.settings.template === 'classic'
+                        ? 'bg-blue-50 border-blue-500 text-blue-700'
+                        : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    Klasik
+                  </button>
+                  <button
+                    onClick={() => updateSettings({ template: 'minimal' })}
+                    className={`px-3 py-2 text-sm font-medium rounded-md border transition-colors ${
+                      formData.settings.template === 'minimal'
+                        ? 'bg-blue-50 border-blue-500 text-blue-700'
+                        : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    Minimal
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -241,12 +428,28 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
+      
+      {/* Translation Loading Overlay */}
+      {isTranslating && (
+        <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center backdrop-blur-sm">
+          <div className="bg-white p-6 rounded-2xl shadow-2xl flex flex-col items-center max-w-sm w-full mx-4">
+            <Loader2 className="w-10 h-10 text-blue-600 animate-spin mb-4" />
+            <h3 className="text-lg font-bold text-gray-900 mb-2">Yapay Zeka Çevirisi</h3>
+            <p className="text-sm text-gray-500 text-center">
+              CV içeriğiniz seçilen dile çevriliyor. Lütfen bekleyin...
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
-      <header className="bg-white shadow-sm sticky top-0 z-10">
+      <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <FileText className="w-8 h-8 text-blue-600" />
+            <div className="bg-blue-600 p-2 rounded-lg">
+              <FileText className="w-6 h-6 text-white" />
+            </div>
             <span className="text-xl font-bold text-gray-900">CV Builder Pro</span>
           </div>
           
@@ -270,8 +473,8 @@ function App() {
       {/* Main Content - Split Screen */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col lg:flex-row gap-8 h-[calc(100vh-4rem)]">
         
-        {/* Left Panel - Form (40%) */}
-        <div className={`w-full lg:w-[40%] flex flex-col h-full ${showMobilePreview ? 'hidden lg:flex' : 'flex'}`}>
+        {/* Left Panel - Form (50%) */}
+        <div className={`w-full lg:w-1/2 flex flex-col h-full ${showMobilePreview ? 'hidden lg:flex' : 'flex'}`}>
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex-1 overflow-y-auto custom-scrollbar">
             <ProgressBar currentStep={currentStep} totalSteps={totalSteps} />
             
@@ -326,8 +529,8 @@ function App() {
           )}
         </div>
 
-        {/* Right Panel - Live Preview (60%) */}
-        <div className={`w-full lg:w-[60%] h-full ${!showMobilePreview ? 'hidden lg:block' : 'block'}`}>
+        {/* Right Panel - Live Preview (50%) */}
+        <div className={`w-full lg:w-1/2 h-full ${!showMobilePreview ? 'hidden lg:block' : 'block'}`}>
           <div className="bg-gray-200 rounded-xl p-4 lg:p-8 h-full overflow-y-auto custom-scrollbar flex items-start justify-center">
             <div className="w-full max-w-[210mm] transition-transform origin-top" style={{ transform: `scale(${textScale / 100})` }}>
               <Step4 data={formData} />
@@ -352,6 +555,7 @@ function App() {
             </>
           )}
         </button>
+
       </main>
     </div>
   );
