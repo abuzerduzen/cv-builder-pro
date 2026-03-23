@@ -1,4 +1,6 @@
-# StepCV | Professional AI-Integrated Resume Engineering Platform
+# 🚀 StepCV | Professional AI-Integrated Resume Engineering Platform
+
+**[🔗 Uygulamayı Canlı Yayında Deneyin (Live Demo)](https://cv-builder-pro-1eul.vercel.app/)**
 
 StepCV, modern işe alım süreçlerindeki standartları karşılamak üzere geliştirilmiş, yüksek performanslı ve modüler bir özgeçmiş oluşturma motorudur. Uygulama, kullanıcı verilerini anlık işleme kapasitesi ve gelişmiş yapay zeka analizi ile rakiplerinden ayrışmaktadır.
 
